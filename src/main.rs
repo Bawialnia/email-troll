@@ -2,15 +2,22 @@
 
 mod services;
 
-use std::env;
-use std::time::Duration;
-
 use cargo::util::config::Config;
 use cargo::util::{Progress, ProgressStyle};
+use clap::Parser;
+
+/// program do trollowania adresów email
+#[derive(Parser)]
+#[clap(help_message = "nie wiem czego nie rozumiesz")]
+struct Args {
+    /// email do ztrollowania
+    #[clap(index(1))]
+    email: String,
+}
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let email = env::args().nth(1).unwrap();
+    let email = Args::parse().email;
 
     let config = Config::default().unwrap();
     let client = reqwest::Client::new();
@@ -34,7 +41,6 @@ async fn main() {
             .tick_now(i, request_count, &format!(" {name}"))
             .unwrap();
         let response = handle.await.unwrap();
-        tokio::time::sleep(Duration::from_millis(100)).await;
         config
             .shell()
             .status("Trolling", format!("{name}: {}", response.status()))
